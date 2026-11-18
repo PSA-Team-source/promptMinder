@@ -161,6 +161,10 @@ export async function POST(request) {
       finalApiKey = storedKey
       resolvedBaseURL = canonicalBaseURL
     } else if (!suppliedApiKey) {
+      // The server's default key belongs to the operator's own endpoint; never send it to UberLLM.
+      if (normalizedProvider === 'uberllm') {
+        return NextResponse.json({ error: 'UberLLM requires your own API key.' }, { status: 400 })
+      }
       const canonical = canonicalBaseURL || DEFAULT_BASE_URL
       let requested
       try {

@@ -90,6 +90,29 @@ describe('Playground UberLLM provider', () => {
     })
   })
 
+  it('没有提供 API Key 时应该拒绝请求，不使用服务器默认 Key', async () => {
+    const request = new Request('http://localhost/api/playground/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: 'Hello',
+        stream: false,
+        settings: {
+          provider: 'uberllm',
+          model: 'deepseek/deepseek-v4.1-flash',
+        },
+      }),
+    })
+
+    const response = await POST(request)
+    const data = await response.json()
+
+    expect(response.status).toBe(400)
+    expect(data.error).toBe('UberLLM requires your own API key.')
+    expect(OpenAI).not.toHaveBeenCalled()
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
   it('应该出现在 Playground 服务商列表和评测服务商中', () => {
     const option = providerOptions.find((item) => item.value === 'uberllm')
     expect(option.baseURL).toBe('https://api.uberllm.dev/v1')
